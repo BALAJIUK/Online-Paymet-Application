@@ -3,6 +3,8 @@ package com.cg.entities;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.ManyToOne;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 @Entity
 public class BankAccount {
 	@Id
@@ -10,6 +12,7 @@ private int accountNo;
 private String ifscCode;
 private String bankName;
 private double balance;
+@JsonIgnore
 @ManyToOne
 private Wallet wallet;
 public BankAccount(int accountNo, String ifscCode, String bankName, double balance, Wallet wallet) {

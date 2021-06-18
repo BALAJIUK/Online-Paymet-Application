@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cg.entities.Customer;
 import com.cg.entities.Wallet;
+import com.cg.service.IUserService;
 import com.cg.service.WalletService;
 
 @RestController
@@ -24,6 +25,9 @@ import com.cg.service.WalletService;
 public class WalletController {
 	@Autowired
 	WalletService service;
+
+	@Autowired
+	IUserService uservice;
 
 	@PostMapping(path = "/createwallet")
 	public ResponseEntity<String> createWallet(@RequestBody Customer customer) {
@@ -67,9 +71,9 @@ public class WalletController {
 
 	@PostMapping(path = "/addmoney/{walletid}/{Accno}", consumes = { "application/json" })
 	public ResponseEntity<String> addMoney(@PathVariable("walletid") int wid, @PathVariable("Accno") int accno,
-			@RequestBody Map<String,String> requestbody) {
+			@RequestBody Map<String, String> requestbody) {
 		String msg = null;
-		double amount=Double.parseDouble(requestbody.get("amount"));
+		double amount = Double.parseDouble(requestbody.get("amount"));
 		Wallet wallet = service.getById(wid);
 		wallet.getBankaccount().setAccountNo(accno);
 		Customer customer = service.addMoney(wallet, amount);
@@ -82,10 +86,13 @@ public class WalletController {
 
 	}
 
-	@PostMapping(path = "/moneytransfer")
-	public ResponseEntity<String> fundTransfer(@RequestBody Map<String, String> requestbody) {
+	@PostMapping(path = "/moneytransfer/{walletid}", consumes = { "application/json" })
+	public ResponseEntity<String> fundTransfer(@PathVariable("walletid") int id,
+			@RequestBody Map<String, String> requestbody) {
 		String msg = null;
-		String source = requestbody.get("source");
+		Wallet wallet = service.getById(id);
+		Customer cust = uservice.getByWallet(wallet);
+		String source = cust.getMobileNumber();
 		String target = requestbody.get("target");
 		double amount = Double.parseDouble(requestbody.get("amount"));
 		BigDecimal bdAmount = new BigDecimal(amount);
@@ -94,6 +101,20 @@ public class WalletController {
 			msg = "Transaction failed..";
 		} else {
 			msg = amount + " sent to " + customer.getName() + " successfully";
+		}
+		return new ResponseEntity<String>(msg, HttpStatus.OK);
+	}
+
+	@PostMapping(path = "/deposit/{walletid}", consumes = { "application/json" })
+	public ResponseEntity<String> depositAmmount(@PathVariable("walletid") int id,
+			@RequestBody Map<String, String> requestbody) {
+		String msg = null;
+		Wallet wallet = service.getById(id);
+		int accno = Integer.parseInt(requestbody.get("account number"));
+		double amount = Double.parseDouble(requestbody.get("amount"));
+		Customer cust = service.depositAmount(wallet, accno, new BigDecimal(amount));
+		if (cust != null) {
+			msg = amount + " transfered from wallet to bank account " + accno;
 		}
 		return new ResponseEntity<String>(msg, HttpStatus.OK);
 	}

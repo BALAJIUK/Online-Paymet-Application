@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import com.cg.entities.BillPayment;
 import com.cg.entities.Transaction;
 import com.cg.entities.Wallet;
+import com.cg.exception.TransactionFailureException;
 import com.cg.repositories.IBillPaymentRepository;
 import com.cg.repositories.WalletRepository;
 
@@ -38,7 +39,7 @@ public class IBillPaymentServiceImplementation implements IBillPaymentService {
 			service.addTransaction(t);
 			return payment;
 		}
-		return null;
+		throw new TransactionFailureException("Transaction failed due to shortage of "+Math.abs(wamount));
 	}
 
 	@Override

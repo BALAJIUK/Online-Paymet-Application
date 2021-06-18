@@ -26,4 +26,6 @@ public void updateBal(double amount,int accno);
 @Modifying
 @Query("delete from BankAccount ba where ba.wallet=?1 and ba.accountNo=?2")
 public void removeAccount(Wallet wallet, int accountNo);
+@Query("from BankAccount b where b.accountNo=?1 and b.wallet=?2")
+public BankAccount getByWalAndAcc(int acc,Wallet wallet);
 }

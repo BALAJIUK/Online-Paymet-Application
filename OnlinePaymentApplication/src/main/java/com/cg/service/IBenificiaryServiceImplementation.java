@@ -8,6 +8,8 @@ import org.springframework.stereotype.Service;
 import com.cg.entities.BenificiaryDetails;
 import com.cg.entities.Customer;
 import com.cg.entities.Wallet;
+import com.cg.exception.BenificiaryNotFoundException;
+import com.cg.exception.CustomerNotFoundException;
 import com.cg.repositories.IBenificiaryRepository;
 import com.cg.repositories.IUserRepository;
 import com.cg.repositories.WalletRepository;
@@ -28,14 +30,13 @@ public class IBenificiaryServiceImplementation implements IBenificiaryService {
 	public BenificiaryDetails addBenificiary(BenificiaryDetails bd) {
 		Customer cust = urepo.getByMobileno(bd.getMobileNumber());
 		Wallet w = wrepo.getByWalId(bd.getWallet().getWalletId());
-		List<BenificiaryDetails> bdetails = brepo.viewAllBenificiaryById(w);
-		for (BenificiaryDetails b : bdetails) {
-			if (b.getMobileNumber().equals(bd.getMobileNumber())) {
-				return null;
-			}
+		BenificiaryDetails bdetail = brepo.getByMobAndWal(bd.getMobileNumber(), w);
+		if (bdetail != null) {
+			throw new BenificiaryNotFoundException("Mobile number already added to your benificiary details");
 		}
 		if (cust == null) {
-			return null;
+			throw new CustomerNotFoundException(
+					bd.getMobileNumber() + " not registered...Enter the mobile number correctly");
 		} else {
 			BenificiaryDetails details = brepo.save(bd);
 			return details;

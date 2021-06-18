@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import com.cg.entities.Customer;
 import com.cg.entities.Wallet;
+import com.cg.exception.CustomerNotFoundException;
 import com.cg.repositories.IUserRepository;
 
 @Service
@@ -20,7 +21,7 @@ public class IuserServiceImplementation implements IUserService {
 		if (cust.getPassword().equals(password)) {
 			return cust;
 		}
-		return null;
+		throw new CustomerNotFoundException("Mobile number or password incorrect.. Enter the correct credentials");
 	}
 
 	@Override
@@ -30,12 +31,12 @@ public class IuserServiceImplementation implements IUserService {
 			repo.save(customer);
 			return true;
 		}
-		return false;
+		throw new CustomerNotFoundException(customer.getMobileNumber()+" already registered..");
 	}
 
 	@Override
 	public Customer getByWallet(Wallet wallet) {
-		Customer cust=repo.getByWallet(wallet);
+		Customer cust = repo.getByWallet(wallet);
 		return cust;
 	}
 }
