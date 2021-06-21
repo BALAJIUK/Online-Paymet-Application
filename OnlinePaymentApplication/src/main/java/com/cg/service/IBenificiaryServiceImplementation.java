@@ -18,49 +18,53 @@ import com.cg.repositories.WalletRepository;
 public class IBenificiaryServiceImplementation implements IBenificiaryService {
 
 	@Autowired
-	IBenificiaryRepository brepo;
+	IBenificiaryRepository benificiaryRepository;
 
 	@Autowired
-	IUserRepository urepo;
+	IUserRepository userRepository;
 
 	@Autowired
-	WalletRepository wrepo;
+	WalletRepository walletRepository;
 
 	@Override
 	public BenificiaryDetails addBenificiary(BenificiaryDetails bd) {
-		Customer cust = urepo.getByMobileno(bd.getMobileNumber());
-		Wallet w = wrepo.getByWalId(bd.getWallet().getWalletId());
-		BenificiaryDetails bdetail = brepo.getByMobAndWal(bd.getMobileNumber(), w);
-		if (bdetail != null) {
-			throw new BenificiaryNotFoundException("Mobile number already added to your benificiary details");
-		}
-		if (cust == null) {
+		Customer customer = userRepository.getByMobileno(bd.getMobileNumber());
+		if (customer == null) {
 			throw new CustomerNotFoundException(
 					bd.getMobileNumber() + " not registered...Enter the mobile number correctly");
+		}
+		Wallet wallet = walletRepository.getByWalId(bd.getWallet().getWalletId());
+		Customer customerCheck = userRepository.getByWallet(wallet);
+		if (bd.getMobileNumber().equals(customerCheck.getMobileNumber())) {
+			throw new BenificiaryNotFoundException("Cannot add your mobile number to your benificiary details");
+		}
+		BenificiaryDetails bdetailFromDb = benificiaryRepository.getByMobAndWal(bd.getMobileNumber(), wallet);
+		if (bdetailFromDb != null) {
+			throw new BenificiaryNotFoundException("Mobile number already added to your benificiary details");
 		} else {
-			BenificiaryDetails details = brepo.save(bd);
-			return details;
+			BenificiaryDetails detail = benificiaryRepository.save(bd);
+			return detail;
 		}
 	}
 
 	@Override
 	public BenificiaryDetails deleteBenificiary(BenificiaryDetails bd) {
-		brepo.deleteById(bd.getWallet(), bd.getMobileNumber());
+		benificiaryRepository.deleteById(bd.getWallet(), bd.getMobileNumber());
 		return null;
 	}
 
 	@Override
-	public BenificiaryDetails viewBenificiary(String mobileNo) {
+	public BenificiaryDetails viewBenificiary(String mobileNo,Wallet wallet) {
 
-		BenificiaryDetails details = brepo.findBymobileNumber(mobileNo);
+		BenificiaryDetails detail = benificiaryRepository.getByMobAndWal(mobileNo,wallet);
 
-		return details;
+		return detail;
 	}
 
 	@Override
 	public List<BenificiaryDetails> viewAllbBenificiary(Customer customer) {
 		Wallet wallet = customer.getWallet();
-		List<BenificiaryDetails> allDetails = brepo.viewAllBenificiaryById(wallet);
+		List<BenificiaryDetails> allDetails = benificiaryRepository.viewAllBenificiaryById(wallet);
 		return allDetails;
 	}
 

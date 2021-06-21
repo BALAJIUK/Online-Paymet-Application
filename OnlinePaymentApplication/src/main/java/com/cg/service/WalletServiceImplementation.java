@@ -24,68 +24,73 @@ import com.cg.repositories.WalletRepository;
 @Service
 public class WalletServiceImplementation implements WalletService {
 	@Autowired
-	IUserRepository urepo;
+	IUserRepository userRepository;
 	@Autowired
-	WalletRepository wrepo;
+	WalletRepository walletRepository;
 	@Autowired
-	IAccountRepository arepo;
+	IAccountRepository accountRepository;
 	@Autowired
-	IBenificiaryRepository brepo;
+	IBenificiaryRepository benificiaryRepository;
 	@Autowired
-	ITransactionService tservice;
+	ITransactionService transactionService;
 
 	@Override
 	public Customer createAccount(String name, String mobileno, BigDecimal amount) {
-		Customer cust = urepo.getByMobileno(mobileno);
-		if (cust == null) {
+		Customer customer = userRepository.getByMobileno(mobileno);
+		if (customer == null) {
 			throw new CustomerNotFoundException("Enter your registered mobile number correctly..");
 		}
-		if (cust.getWallet() == null) {
-			Wallet w = new Wallet(amount);
-			wrepo.save(w);
-			urepo.addWallet(w, mobileno);
-			return cust;
+		if (customer.getWallet() == null) {
+			Wallet wallet = new Wallet(amount);
+			walletRepository.save(wallet);
+			userRepository.addWallet(wallet, mobileno);
+			return customer;
 		}
-		return null;
+		else {
+			throw new CustomerNotFoundException("Wallet already created for this mobile number");
+		}
 	}
 
 	@Override
 	public Customer showBalance(String mobileno) {
-		Customer c = urepo.getByMobileno(mobileno);
-		if (c == null) {
+		Customer customer = userRepository.getByMobileno(mobileno);
+		if (customer == null) {
 			throw new CustomerNotFoundException("Enter your registered mobile number correctly..");
 		} else {
-			return c;
+			return customer;
 		}
 	}
 
 	@Override
 	public Customer fundTransfer(String sourceMobileNo, String targetMobileNo, BigDecimal amount) {
-		Customer custS = urepo.getByMobileno(sourceMobileNo);
-		Customer custT = urepo.getByMobileno(targetMobileNo);
-		if (custS == null || custT == null) {
+		Customer customerSource = userRepository.getByMobileno(sourceMobileNo);
+		Customer customerTarget = userRepository.getByMobileno(targetMobileNo);
+		if (customerSource == null || customerTarget == null) {
 			throw new CustomerNotFoundException("Mobile number not registered..");
 		}
-		Wallet walletS = wrepo.getByWalId(custS.getWallet().getWalletId());
-		Wallet walletT = wrepo.getByWalId(custT.getWallet().getWalletId());
-		BenificiaryDetails detail = brepo.getByMobAndWal(targetMobileNo, walletS);
-		double sourceAmount = walletS.getBalance().doubleValue();
-		double targetAmount = walletT.getBalance().doubleValue();
+		if(customerSource.getMobileNumber().equals(customerTarget.getMobileNumber())) {
+			throw new TransactionFailureException("Cannot transfer from your wallet to your wallet");
+		}
+		Wallet walletSource = walletRepository.getByWalId(customerSource.getWallet().getWalletId());
+		Wallet walletTarget = walletRepository.getByWalId(customerTarget.getWallet().getWalletId());
+		BenificiaryDetails benificiaryDetail = benificiaryRepository.getByMobAndWal(targetMobileNo, walletSource);
+		double sourceAmount = walletSource.getBalance().doubleValue();
+		double targetAmount = walletTarget.getBalance().doubleValue();
 		sourceAmount = sourceAmount - amount.doubleValue();
 		targetAmount = targetAmount + amount.doubleValue();
-		BigDecimal bdSource = new BigDecimal(sourceAmount);
-		BigDecimal bdTarget = new BigDecimal(targetAmount);
-		if (detail != null) {
+		BigDecimal bigDecimalSource = new BigDecimal(sourceAmount);
+		BigDecimal bigDecimalTarget = new BigDecimal(targetAmount);
+		if (benificiaryDetail != null) {
 			if (sourceAmount >= 0) {
-				wrepo.updateBal(bdSource, walletS.getWalletId());
-				wrepo.updateBal(bdTarget, walletT.getWalletId());
+				walletRepository.updateBal(bigDecimalSource, walletSource.getWalletId());
+				walletRepository.updateBal(bigDecimalTarget, walletTarget.getWalletId());
 				Transaction t1 = new Transaction("Transfer", LocalDate.now(), amount.doubleValue(),
-						"Sent to " + targetMobileNo, walletS);
+						"Sent to " + targetMobileNo, walletSource);
 				Transaction t2 = new Transaction("Transfer", LocalDate.now(), amount.doubleValue(),
-						"Received from " + sourceMobileNo, walletT);
-				tservice.addTransaction(t1);
-				tservice.addTransaction(t2);
-				return custT;
+						"Received from " + sourceMobileNo, walletTarget);
+				transactionService.addTransaction(t1);
+				transactionService.addTransaction(t2);
+				return customerTarget;
 			} else {
 				throw new TransactionFailureException(
 						"Transaction failed due to shortage of " + Math.abs(sourceAmount));
@@ -97,90 +102,90 @@ public class WalletServiceImplementation implements WalletService {
 
 	@Override
 	public List<Customer> getList() {
-		List<Customer> customers = urepo.findAll();
+		List<Customer> customers = userRepository.findAll();
 		return customers;
 	}
 
 	@Override
 	public Customer updateAccount(Customer customer) {
-		Customer c = urepo.getByMobileno(customer.getMobileNumber());
-		if (c == null) {
+		Customer customerFromDb = userRepository.getByMobileno(customer.getMobileNumber());
+		if (customerFromDb == null) {
 			throw new CustomerNotFoundException("Enter your registered mobile number correctly..");
 		} else {
-			urepo.updatePassword(customer.getPassword(), customer.getMobileNumber());
-			return c;
+			userRepository.updatePassword(customer.getPassword(), customer.getMobileNumber());
+			return customerFromDb;
 		}
 	}
 
 	@Override
 	public Customer addMoney(Wallet wallet, double amount) {
-		int accno = wallet.getBankaccount().getAccountNo();
-		BankAccount bacc = arepo.getByAccNo(accno);
-		if (bacc == null) {
-			throw new BankAccountNotFoundException("Bank Account " + accno + " not added to your wallet");
+		int accountNo = wallet.getBankaccount().getAccountNo();
+		BankAccount bankAccount = accountRepository.getByAccNo(accountNo);
+		if (bankAccount == null) {
+			throw new BankAccountNotFoundException("Bank Account " + accountNo + " not added to your wallet");
 		}
-		double wamount = wallet.getBalance().doubleValue();
-		double bamount = bacc.getBalance();
-		wamount = wamount + amount;
-		bamount = bamount - amount;
-		BigDecimal bdwamount = new BigDecimal(wamount);
-		if (bacc.getWallet().getWalletId() == wallet.getWalletId()) {
-			if (bamount >= 0) {
-				bacc.setBalance(bamount);
-				wallet.setBalance(bdwamount);
-				arepo.updateBal(bamount, accno);
-				wrepo.updateBal(bdwamount, wallet.getWalletId());
-				Transaction t = new Transaction("Transfer", LocalDate.now(), amount,
-						"Transfer from Bank Account " + bacc.getAccountNo(), wallet);
-				tservice.addTransaction(t);
-				Customer cust = urepo.getByWallet(wallet);
-				return cust;
+		double walletAmount = wallet.getBalance().doubleValue();
+		double bankAmount = bankAccount.getBalance();
+		walletAmount = walletAmount + amount;
+		bankAmount = bankAmount - amount;
+		BigDecimal bigDecimalWalletAmount = new BigDecimal(walletAmount);
+		if (bankAccount.getWallet().getWalletId() == wallet.getWalletId()) {
+			if (bankAmount >= 0) {
+				bankAccount.setBalance(bankAmount);
+				wallet.setBalance(bigDecimalWalletAmount);
+				accountRepository.updateBal(bankAmount, accountNo);
+				walletRepository.updateBal(bigDecimalWalletAmount, wallet.getWalletId());
+				Transaction transaction = new Transaction("Transfer", LocalDate.now(), amount,
+						"Transfer from Bank Account " + bankAccount.getAccountNo(), wallet);
+				transactionService.addTransaction(transaction);
+				Customer customer = userRepository.getByWallet(wallet);
+				return customer;
 			} else {
-				throw new TransactionFailureException("Transaction failed due to shortage of " + Math.abs(bamount));
+				throw new TransactionFailureException("Transaction failed due to shortage of " + Math.abs(bankAmount));
 			}
 		} else {
-			throw new BankAccountNotFoundException("Bank Account " + accno + " not added to your wallet");
+			throw new BankAccountNotFoundException("Bank Account " + accountNo + " not added to your wallet");
 		}
 	}
 
 	@Override
 	public Wallet getById(int id) {
-		Wallet w = wrepo.getByWalId(id);
-		if (w == null) {
+		Wallet wallet = walletRepository.getByWalId(id);
+		if (wallet == null) {
 			throw new CustomerNotFoundException("Wallet not found");
 		} else {
-			return w;
+			return wallet;
 		}
 	}
 
 	@Override
 	public String getMobileByWallet(Wallet wallet) {
-		String mobile = urepo.getCustomer(wallet);
+		String mobile = userRepository.getCustomer(wallet);
 		return mobile;
 	}
 
 	@Override
-	public Customer depositAmount(Wallet wallet, int accno, BigDecimal amount) {
-		BankAccount bacc = arepo.getByWalAndAcc(accno, wallet);
-		if (bacc == null) {
+	public Customer depositAmount(Wallet wallet, int accountNo, BigDecimal amount) {
+		BankAccount bankAccount = accountRepository.getByWalAndAcc(accountNo, wallet);
+		if (bankAccount == null) {
 			throw new TransactionFailureException(
-					"Transaction failed. Bank account " + accno + " not linked with your wallet");
+					"Transaction failed. Bank account " + accountNo + " not linked with your wallet");
 		}
-		double wamount = bacc.getWallet().getBalance().doubleValue();
-		double bamount = bacc.getBalance();
-		wamount = wamount - amount.doubleValue();
-		bamount = bamount + amount.doubleValue();
-		BigDecimal bdwamount = new BigDecimal(wamount);
-		if (wamount >= 0) {
-			wrepo.updateBal(bdwamount, bacc.getWallet().getWalletId());
-			arepo.updateBal(bamount, accno);
-			Transaction t = new Transaction("Transfer", LocalDate.now(), amount.doubleValue(),
-					"Sent to Bank account " + accno, bacc.getWallet());
-			tservice.addTransaction(t);
-			Customer customer=urepo.getByWallet(bacc.getWallet());
+		double walletAmount = bankAccount.getWallet().getBalance().doubleValue();
+		double bankAmount = bankAccount.getBalance();
+		walletAmount = walletAmount - amount.doubleValue();
+		bankAmount = bankAmount + amount.doubleValue();
+		BigDecimal bigDecimalWalletAmount = new BigDecimal(walletAmount);
+		if (walletAmount >= 0) {
+			walletRepository.updateBal(bigDecimalWalletAmount, bankAccount.getWallet().getWalletId());
+			accountRepository.updateBal(bankAmount, accountNo);
+			Transaction transaction = new Transaction("Transfer", LocalDate.now(), amount.doubleValue(),
+					"Sent to Bank account " + accountNo, bankAccount.getWallet());
+			transactionService.addTransaction(transaction);
+			Customer customer = userRepository.getByWallet(bankAccount.getWallet());
 			return customer;
 		} else {
-			throw new TransactionFailureException("Transaction failed due to shortage of " + Math.abs(wamount));
+			throw new TransactionFailureException("Transaction failed due to shortage of " + Math.abs(walletAmount));
 		}
 	}
 

@@ -9,9 +9,8 @@ import com.cg.entities.Wallet;
 
 @Service
 public interface IBillPaymentService {
+
 	public BillPayment addBillPayment(BillPayment payment);
 
-	public BillPayment viewBillpayment(BillPayment payment);
-	
 	public List<BillPayment> viewAllBills(Wallet wallet);
 }

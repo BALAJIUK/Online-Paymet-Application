@@ -15,22 +15,22 @@ import com.cg.repositories.WalletRepository;
 public class IAccountServiceImplementation implements IAccountService {
 
 	@Autowired
-	IAccountRepository arepo;
+	IAccountRepository accountRepository;
 
 	@Autowired
-	WalletRepository wrepo;
+	WalletRepository walletRepository;
 
 	@Override
 	public Wallet addAccount(BankAccount bankaccount) {
-		BankAccount bacc = arepo.getByWalAndAcc(bankaccount.getAccountNo(), bankaccount.getWallet());
-		if (bacc != null) {
+		BankAccount bankAccountFromDb = accountRepository.getByWalAndAcc(bankaccount.getAccountNo(), bankaccount.getWallet());
+		if (bankAccountFromDb != null) {
 			throw new BankAccountNotFoundException(
 					"Bank Account " + bankaccount.getAccountNo() + " already added to your wallet..");
 		}
-		BankAccount acc = arepo.getByAccNo(bankaccount.getAccountNo());
-		if (acc == null) {
-			arepo.save(bankaccount);
-			Wallet wallet = wrepo.getByWalId(bankaccount.getWallet().getWalletId());
+		BankAccount bankAccount = accountRepository.getByAccNo(bankaccount.getAccountNo());
+		if (bankAccount == null) {
+			accountRepository.save(bankaccount);
+			Wallet wallet = walletRepository.getByWalId(bankaccount.getWallet().getWalletId());
 			return wallet;
 		} else {
 			throw new BankAccountNotFoundException(
@@ -41,28 +41,28 @@ public class IAccountServiceImplementation implements IAccountService {
 
 	@Override
 	public Wallet removeAccount(BankAccount bankaccount) {
-		BankAccount acc = arepo.getByWalAndAcc(bankaccount.getAccountNo(), bankaccount.getWallet());
-		if (acc == null) {
+		BankAccount bankAccountFromDb = accountRepository.getByWalAndAcc(bankaccount.getAccountNo(), bankaccount.getWallet());
+		if (bankAccountFromDb == null) {
 			throw new BankAccountNotFoundException(
 					"Can't delete. Bank Account " + bankaccount.getAccountNo() + " is not added to your wallet");
 		} else {
-			Wallet wallet = wrepo.getByWalId(bankaccount.getWallet().getWalletId());
-			arepo.removeAccount(bankaccount.getWallet(), bankaccount.getAccountNo());
+			Wallet wallet = walletRepository.getByWalId(bankaccount.getWallet().getWalletId());
+			accountRepository.removeAccount(bankaccount.getWallet(), bankaccount.getAccountNo());
 			return wallet;
 		}
 	}
 
 	@Override
 	public List<BankAccount> viewAllAccounts(Wallet wallet) {
-		List<BankAccount> accounts = arepo.getByWallet(wallet);
+		List<BankAccount> accounts = accountRepository.getByWallet(wallet);
 		return accounts;
 
 	}
 
 	@Override
-	public BankAccount getByAccNo(int accno) {
-		BankAccount bacc = arepo.getByAccNo(accno);
-		return bacc;
+	public BankAccount getByAccNo(int accountNo) {
+		BankAccount bankAccount = accountRepository.getByAccNo(accountNo);
+		return bankAccount;
 	}
 
 }

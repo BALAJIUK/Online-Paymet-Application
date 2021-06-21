@@ -12,11 +12,16 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cg.entities.Customer;
 import com.cg.entities.Wallet;
+import com.cg.exception.CustomerNotFoundException;
+import com.cg.exception.SessionException;
+import com.cg.exception.TransactionFailureException;
+import com.cg.security.utility.JWTUtility;
 import com.cg.service.IUserService;
 import com.cg.service.WalletService;
 
@@ -24,98 +29,134 @@ import com.cg.service.WalletService;
 @RequestMapping("api/v1")
 public class WalletController {
 	@Autowired
-	WalletService service;
+	WalletService walletService;
 
 	@Autowired
-	IUserService uservice;
+	IUserService userService;
 
-	@PostMapping(path = "/createwallet")
-	public ResponseEntity<String> createWallet(@RequestBody Customer customer) {
+	@Autowired
+	JWTUtility jwtUtility;
+
+	//To create a wallet
+	@GetMapping(path = "/createwallet")
+	public ResponseEntity<String> createWallet(@RequestHeader(name = "Authorization") String token) {
 		String message = null;
-		Customer cust = service.createAccount(customer.getName(), customer.getMobileNumber(), new BigDecimal("0.0"));
-		if (cust == null) {
-			message = "Wallet already created for this mobileNo";
-		} else {
-			message = "Wallet created Successfully for " + cust.getMobileNumber();
-		}
+		String realToken = token.substring(7);
+		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
+		Customer customer = userService.getById(mobileNo);
+		Customer customerCheck = walletService.createAccount(customer.getName(), customer.getMobileNumber(),
+				new BigDecimal("0.0"));
+		message = "Wallet created Successfully for " + customerCheck.getMobileNumber();
 		return new ResponseEntity<String>(message, HttpStatus.OK);
 	}
 
+	//To get the list users
 	@GetMapping(path = "/admin", produces = { "application/json" })
-	public ResponseEntity<List<Customer>> getCustomers() {
-		List<Customer> customers = service.getList();
+	public ResponseEntity<List<Customer>> getCustomers(@RequestHeader(name = "Authorization") String token) {
+		String realToken = token.substring(7);
+		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
+		Customer customer = userService.getById(mobileNo);
+		List<Customer> customers;
+		if (customer.getName().equalsIgnoreCase("admin")) {
+			customers = walletService.getList();
+		} else {
+			throw new CustomerNotFoundException("You don't have access to this page");
+		}
 		return new ResponseEntity<List<Customer>>(customers, HttpStatus.OK);
 	}
 
-	@GetMapping(path = "/balance/{walletid}", produces = { "application/json" })
-	public ResponseEntity<String> getBalance(@PathVariable("walletid") int walletid) {
+	//To get the Wallet balance
+	@GetMapping(path = "/balance", produces = { "application/json" })
+	public ResponseEntity<String> getBalance(@RequestHeader(name = "Authorization") String token) {
 		String msg = null;
-		Wallet w = service.getById(walletid);
-		String mobileno = service.getMobileByWallet(w);
-		Customer cust = service.showBalance(mobileno);
-		msg = "Your wallet balance : " + cust.getWallet().getBalance();
+		String realToken = token.substring(7);
+		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
+		Customer customer = userService.getById(mobileNo);
+		Wallet wallet = walletService.getById(customer.getWallet().getWalletId());
+		String mobileno = walletService.getMobileByWallet(wallet);
+		Customer customerCheck = walletService.showBalance(mobileno);
+		msg = "Your wallet balance : " + customerCheck.getWallet().getBalance();
 		return new ResponseEntity<String>(msg, HttpStatus.OK);
 	}
 
+	//To update the password
 	@PutMapping(path = "/updatepass", consumes = { "application/json" })
-	public ResponseEntity<String> changePass(@RequestBody Customer customer) {
+	public ResponseEntity<String> changePass(@RequestBody Customer customer,
+			@RequestHeader(name = "Authorization") String token) {
 		String msg = null;
-		Customer cust = service.updateAccount(customer);
-		if (cust == null) {
-			msg = "Updation failed...!";
-		} else {
-			msg = "Password updated Successfully for " + cust.getMobileNumber();
-		}
+		String realToken = token.substring(7);
+		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
+		Customer customerFromDb = userService.getById(mobileNo);
+		customerFromDb.setPassword(customer.getPassword());
+		Customer customerCheck = walletService.updateAccount(customerFromDb);
+		msg = "Password updated Successfully for " + customerCheck.getMobileNumber();
 		return new ResponseEntity<String>(msg, HttpStatus.OK);
 	}
 
-	@PostMapping(path = "/addmoney/{walletid}/{Accno}", consumes = { "application/json" })
-	public ResponseEntity<String> addMoney(@PathVariable("walletid") int wid, @PathVariable("Accno") int accno,
-			@RequestBody Map<String, String> requestbody) {
+	//To add money from bank to wallet
+	@PostMapping(path = "/addmoney/{Accno}", consumes = { "application/json" })
+	public ResponseEntity<String> addMoney(@PathVariable("Accno") int accno,
+			@RequestHeader(name = "Authorization") String token, @RequestBody Map<String, String> requestbody) {
 		String msg = null;
-		double amount = Double.parseDouble(requestbody.get("amount"));
-		Wallet wallet = service.getById(wid);
+		String realToken = token.substring(7);
+		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
+		Customer customer = userService.getById(mobileNo);
+		Wallet wallet = walletService.getById(customer.getWallet().getWalletId());
+		double amount = 0.0;
+		try {
+			amount = Double.parseDouble(requestbody.get("amount"));
+		} catch (Exception e) {
+			throw new TransactionFailureException("Enter the valid amount");
+		}
 		wallet.getBankaccount().setAccountNo(accno);
-		Customer customer = service.addMoney(wallet, amount);
-		if (customer == null) {
-			msg = "Transaction failed.....!";
-		} else {
-			msg = amount + " added successfully to your wallet.";
-		}
+		Customer customerCheck = walletService.addMoney(wallet, amount);
+		msg = amount + " added successfully to your wallet.";
 		return new ResponseEntity<String>(msg, HttpStatus.OK);
 
 	}
 
-	@PostMapping(path = "/moneytransfer/{walletid}", consumes = { "application/json" })
-	public ResponseEntity<String> fundTransfer(@PathVariable("walletid") int id,
+	//To transfer money from wallet to wallet
+	@PostMapping(path = "/moneytransfer", consumes = { "application/json" })
+	public ResponseEntity<String> fundTransfer(@RequestHeader(name = "Authorization") String token,
 			@RequestBody Map<String, String> requestbody) {
 		String msg = null;
-		Wallet wallet = service.getById(id);
-		Customer cust = uservice.getByWallet(wallet);
-		String source = cust.getMobileNumber();
+		String realToken = token.substring(7);
+		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
+		Customer customer = userService.getById(mobileNo);
+		String source = customer.getMobileNumber();
 		String target = requestbody.get("target");
-		double amount = Double.parseDouble(requestbody.get("amount"));
-		BigDecimal bdAmount = new BigDecimal(amount);
-		Customer customer = service.fundTransfer(source, target, bdAmount);
-		if (customer == null) {
-			msg = "Transaction failed..";
-		} else {
-			msg = amount + " sent to " + customer.getName() + " successfully";
+		double amount = 0.0;
+		try {
+			Long mob = Long.parseLong(target);
+			amount = Double.parseDouble(requestbody.get("amount"));
+		} catch (Exception e) {
+			throw new TransactionFailureException("Enter the valid details");
 		}
+		BigDecimal bigDecimalAmount = new BigDecimal(amount);
+		Customer customerCheck2 = walletService.fundTransfer(source, target, bigDecimalAmount);
+		msg = amount + " sent to " + customerCheck2.getName() + " successfully";
 		return new ResponseEntity<String>(msg, HttpStatus.OK);
 	}
 
-	@PostMapping(path = "/deposit/{walletid}", consumes = { "application/json" })
-	public ResponseEntity<String> depositAmmount(@PathVariable("walletid") int id,
+	//Tp deposit money from wallet to bank which is linked to wallet
+	@PostMapping(path = "/deposit", consumes = { "application/json" })
+	public ResponseEntity<String> depositAmmount(@RequestHeader(name = "Authorization") String token,
 			@RequestBody Map<String, String> requestbody) {
 		String msg = null;
-		Wallet wallet = service.getById(id);
-		int accno = Integer.parseInt(requestbody.get("account number"));
-		double amount = Double.parseDouble(requestbody.get("amount"));
-		Customer cust = service.depositAmount(wallet, accno, new BigDecimal(amount));
-		if (cust != null) {
-			msg = amount + " transfered from wallet to bank account " + accno;
+		String realToken = token.substring(7);
+		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
+		Customer customer = userService.getById(mobileNo);
+		Wallet wallet = walletService.getById(customer.getWallet().getWalletId());
+		double amount = 0.0;
+		int accno = 0;
+		try {
+			accno = Integer.parseInt(requestbody.get("account number"));
+			amount = Double.parseDouble(requestbody.get("amount"));
+		} catch (Exception e) {
+			throw new TransactionFailureException("Enter the valid details");
 		}
+		Customer cust = walletService.depositAmount(wallet, accno, new BigDecimal(amount));
+		msg = amount + " transfered from wallet to bank account " + accno;
 		return new ResponseEntity<String>(msg, HttpStatus.OK);
 	}
 

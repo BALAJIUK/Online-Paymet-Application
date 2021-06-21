@@ -14,36 +14,36 @@ import com.cg.repositories.ITransactionRepository;
 public class ITransactionServiceImplementation implements ITransactionService {
 
 	@Autowired
-	ITransactionRepository repo;
+	ITransactionRepository transactionRepository;
 	
 	@Override
 	public Transaction addTransaction(Transaction tran) {
-		Transaction transaction = repo.save(tran);
+		Transaction transaction = transactionRepository.save(tran);
 		return transaction;
 	}
 
 	@Override
 	public List<Transaction> viewAllTransactions(Wallet wallet) {
-		List<Transaction> transactions = repo.findTransactionById(wallet);
+		List<Transaction> transactions = transactionRepository.findTransactionById(wallet);
 		return transactions;
 	}
 
 	@Override
 	public List<Transaction> viewTransactionByDate(LocalDate from, LocalDate to, Wallet wallet) {
 
-		List<Transaction> transactions = repo.findTransactionByDate(from, to, wallet);
+		List<Transaction> transactions = transactionRepository.findTransactionByDate(from, to, wallet);
 		return transactions;
 	}
 
 	@Override
 	public List<Transaction> viewAllTransactions(String type, Wallet wallet) {
-		List<Transaction> transactions = repo.findTransactionById(wallet);
-		List<Transaction> transactionswithtype = new ArrayList<Transaction>();
-		for (Transaction t : transactions) {
-			if (t.getTransactionType().contains(type)) {
-				transactionswithtype.add(t);
+		List<Transaction> transactions = transactionRepository.findTransactionById(wallet);
+		List<Transaction> transactionsWithType = new ArrayList<Transaction>();
+		for (Transaction transaction : transactions) {
+			if (transaction.getTransactionType().toLowerCase().contains(type.toLowerCase())) {
+				transactionsWithType.add(transaction);
 			}
 		}
-		return transactionswithtype;
+		return transactionsWithType;
 	}
 }

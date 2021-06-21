@@ -9,6 +9,7 @@ import com.cg.entities.Wallet;
 
 @Service
 public interface IAccountService {
+	
 	public Wallet addAccount(BankAccount bankaccount);
 
 	public Wallet removeAccount(BankAccount bankaccount);

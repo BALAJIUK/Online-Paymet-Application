@@ -12,10 +12,11 @@ import javax.persistence.Table;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
-@Table(name="Transaction")
+@Table(name = "Transaction")
 public class Transaction {
 	@JsonIgnore
-	@Id@GeneratedValue(strategy = GenerationType.TABLE)
+	@Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int transactionId;
 	private String transactionType;
 	private LocalDate transactionDate;
@@ -25,8 +26,8 @@ public class Transaction {
 	@ManyToOne
 	private Wallet wallet;
 
-	public Transaction(String transactionType, LocalDate transactionDate, double amount,
-			String description, Wallet wallet) {
+	public Transaction(String transactionType, LocalDate transactionDate, double amount, String description,
+			Wallet wallet) {
 		super();
 		this.transactionType = transactionType;
 		this.transactionDate = transactionDate;
@@ -34,15 +35,10 @@ public class Transaction {
 		this.description = description;
 		this.wallet = wallet;
 	}
-	
-	
-	
 
 	public Transaction() {
-		
+
 	}
-
-
 
 	public int getTransactionId() {
 		return transactionId;

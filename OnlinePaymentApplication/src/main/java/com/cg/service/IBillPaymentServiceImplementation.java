@@ -18,39 +18,34 @@ import com.cg.repositories.WalletRepository;
 public class IBillPaymentServiceImplementation implements IBillPaymentService {
 
 	@Autowired
-	IBillPaymentRepository billrepo;
+	IBillPaymentRepository billPaymentRepository;
 
 	@Autowired
-	WalletRepository wrepo;
+	WalletRepository walletRepository;
 
 	@Autowired
-	ITransactionService service;
+	ITransactionService transactionService;
 
 	@Override
 	public BillPayment addBillPayment(BillPayment payment) {
 		Wallet wallet = payment.getWallet();
-		double wamount = wallet.getBalance().doubleValue() - payment.getAmount();
-		BigDecimal bdwamont = new BigDecimal(wamount);
-		if (wamount >= 0) {
-			billrepo.save(payment);
-			wrepo.updateBal(bdwamont, payment.getWallet().getWalletId());
-			Transaction t = new Transaction("bill payment", LocalDate.now(), payment.getAmount(), payment.getBillType(),
+		double walletAmount = wallet.getBalance().doubleValue() - payment.getAmount();
+		BigDecimal bigDecimalWalletAmount = new BigDecimal(walletAmount);
+		if (walletAmount >= 0) {
+			billPaymentRepository.save(payment);
+			walletRepository.updateBal(bigDecimalWalletAmount, payment.getWallet().getWalletId());
+			Transaction transaction = new Transaction("bill payment", LocalDate.now(), payment.getAmount(), payment.getBillType(),
 					wallet);
-			service.addTransaction(t);
+			transactionService.addTransaction(transaction);
 			return payment;
 		}
-		throw new TransactionFailureException("Transaction failed due to shortage of "+Math.abs(wamount));
-	}
-
-	@Override
-	public BillPayment viewBillpayment(BillPayment payment) {
-		// TODO Auto-generated method stub
-		return null;
+		throw new TransactionFailureException("Transaction failed due to shortage of "+Math.abs(walletAmount));
 	}
 
 	@Override
 	public List<BillPayment> viewAllBills(Wallet wallet) {
-		List<BillPayment> bills = billrepo.viewBillPayment(wallet);
+		
+		List<BillPayment> bills = billPaymentRepository.viewBillPayment(wallet);
 
 		return bills;
 	}

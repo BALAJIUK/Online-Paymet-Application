@@ -40,4 +40,10 @@ public class GlobalExceptionHandler {
 		ErrorDetails errordetails = new ErrorDetails(new Date(), e.getMessage(), request.getDescription(false));
 		return new ResponseEntity(errordetails,HttpStatus.NOT_FOUND);
 	}
+	@ExceptionHandler(SessionException.class)
+	public ResponseEntity handleSessionException(SessionException e,WebRequest request)
+	{
+		ErrorDetails errordetails = new ErrorDetails(new Date(), e.getMessage(), request.getDescription(false));
+		return new ResponseEntity(errordetails,HttpStatus.UNAUTHORIZED);
+	}
 }

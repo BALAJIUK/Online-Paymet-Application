@@ -10,6 +10,7 @@ import com.cg.entities.Wallet;
 
 @Service
 public interface WalletService {
+	
 	public Customer createAccount(String name, String mobileno, BigDecimal amount);
 
 	public Customer showBalance(String mobileno);

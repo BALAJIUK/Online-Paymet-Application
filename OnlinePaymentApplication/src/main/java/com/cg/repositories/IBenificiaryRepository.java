@@ -22,7 +22,7 @@ public interface IBenificiaryRepository extends JpaRepository<BenificiaryDetails
 	@Transactional
 	@Modifying
 	@Query("delete from BenificiaryDetails bd where bd.wallet = ?1 and bd.mobileNumber = ?2 ")
-	public void deleteById(Wallet walletId,String mobileNumber);
+	public int deleteById(Wallet walletId,String mobileNumber);
 	
 	@Query("From BenificiaryDetails bd where bd.wallet = ?1")
 	public List<BenificiaryDetails> viewAllBenificiaryById(Wallet wallet);

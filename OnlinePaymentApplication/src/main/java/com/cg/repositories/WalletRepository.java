@@ -10,13 +10,15 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import com.cg.entities.Wallet;
+
 @Repository
-public interface WalletRepository extends JpaRepository<Wallet, Integer>{
+public interface WalletRepository extends JpaRepository<Wallet, Integer> {
 
 	@Query("from Wallet w where w.walletId=?1")
 	public Wallet getByWalId(int id);
+
 	@Transactional
 	@Modifying
 	@Query("update Wallet w set w.balance=?1 where w.walletId=?2")
-	public void updateBal(BigDecimal amount,int id);
+	public int updateBal(BigDecimal amount, int id);
 }
