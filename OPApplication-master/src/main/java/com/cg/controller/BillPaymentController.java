@@ -70,7 +70,7 @@ public class BillPaymentController {
 		Wallet wallet = walletService.getById(customer.getWallet().getWalletId());
 		
 		List<BillPayment> bills = billPaymentService.viewAllBills(wallet);
-	
+		Collections.reverse(bills);
 		return new ResponseEntity<List<BillPayment>>(bills,HttpStatus.OK);
 		
 	}

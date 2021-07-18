@@ -11,7 +11,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 
 @Entity
 public class BenificiaryDetails {
-	@JsonIgnore
 	@Id @GeneratedValue(strategy = GenerationType.IDENTITY)
 	private int benificiaryId;
 

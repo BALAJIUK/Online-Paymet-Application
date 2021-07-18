@@ -19,5 +19,5 @@ public interface IBenificiaryService {
 
 	public List<BenificiaryDetails> viewAllbBenificiary(Customer customer);
 	
-	public BenificiaryDetails viewByMobile(String mobile);
+	public Customer viewByMobile(String mobile);
 }

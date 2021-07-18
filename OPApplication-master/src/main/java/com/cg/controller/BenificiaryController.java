@@ -61,14 +61,14 @@ public class BenificiaryController {
 
 	//To get the benificiary detail by mobile number 
 	@GetMapping("/benificiary/view/{mobile}")
-	public ResponseEntity<BenificiaryDetails> viewBenificiaryDetails(@PathVariable("mobile") String mobileNumber,
+	public ResponseEntity<Customer> viewBenificiaryDetails(@PathVariable("mobile") String mobileNumber,
 			@RequestHeader(name = "Authorization") String token) {
 		String realToken = token.substring(7);
 		String mobileNo = jwtUtility.getMobileNoFromToken(realToken);
 		Customer customer = userService.getById(mobileNo);
 		Wallet wallet = walletService.getById(customer.getWallet().getWalletId());
-		BenificiaryDetails detail = benificiaryService.viewByMobile(mobileNumber);
-		return new ResponseEntity<BenificiaryDetails>(detail, HttpStatus.OK);
+		Customer detail = benificiaryService.viewByMobile(mobileNumber);
+		return new ResponseEntity<Customer>(detail, HttpStatus.OK);
 	}
 
 	//To delete benificiary by mobile number

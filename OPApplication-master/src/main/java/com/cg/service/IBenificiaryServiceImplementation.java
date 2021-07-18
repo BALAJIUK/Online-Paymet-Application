@@ -69,13 +69,13 @@ public class IBenificiaryServiceImplementation implements IBenificiaryService {
 	}
 
 	@Override
-	public BenificiaryDetails viewByMobile(String mobile) {
-		List<BenificiaryDetails> bdetails=benificiaryRepository.findBymobileNumber(mobile);
-		if(bdetails==null) {
+	public Customer viewByMobile(String mobile) {
+		Customer customer=userRepository.getByMobileno(mobile);
+		if(customer==null) {
 			return null;
 		}
 		else {
-			return bdetails.get(0);
+			return customer;
 		}
 		
 	}
