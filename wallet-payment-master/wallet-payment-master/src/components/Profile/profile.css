@@ -1,0 +1,30 @@
+.bg{
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.8)
+      ),
+      url(WP.jpg);
+      background-repeat: no-repeat;
+      background-size: cover;
+      border-radius: 12px;
+      background-position: center;
+      background-attachment: fixed;
+      display: block;
+      overflow: auto;
+}
+.avatar{
+    border-radius: 50%;
+    height: 25vh;
+    width: 25vh;
+    font-weight: bold;
+    font-size: 70px;
+}
+.brad{
+    border-radius: 18px;
+}
+.green{
+    background: rgb(2, 37, 11);
+}
+.bold{
+    font-weight: bold;
+}

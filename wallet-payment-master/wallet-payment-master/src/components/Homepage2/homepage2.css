@@ -1,0 +1,22 @@
+.bg{
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.8)
+      ),
+      url(WP.jpg);
+      background-repeat: no-repeat;
+      background-size: cover;
+      border-radius: 12px;
+      background-position: center;
+      background-attachment: fixed;
+      display: block;
+      overflow: auto;
+}
+.butn:hover{
+  background:black;
+}
+.butn{
+ background: #001a02; 
+ height: 30vh;
+border-radius:18px ;
+}
