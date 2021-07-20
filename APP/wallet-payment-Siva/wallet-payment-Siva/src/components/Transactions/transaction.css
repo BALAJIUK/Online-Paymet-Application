@@ -1,0 +1,15 @@
+#date {
+    height: 80px;
+    padding-left: 80px;
+  }
+  
+  #type {
+    top: 23px;
+    right: 10px;
+  }
+  .added{
+    background-color: rgba(0, 255, 85, 0.5);
+  }
+  .subtracted{
+    background-color: rgba(255, 0, 0, 0.5);
+  }

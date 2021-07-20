@@ -1,0 +1,26 @@
+.bg{
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.8)
+    ),url(WP.jpg);
+      background-repeat: no-repeat;
+      background-size: cover;
+      border-radius: 12px;
+      background-position: center;
+      background-attachment: fixed;
+      display: block;
+      overflow: auto;
+      height: 86vh;
+}
+.delete{
+    background:rgb(134, 2, 2);
+    color:white;
+    border-radius: 18px;
+}
+.delete:hover{
+    background:white;
+    color:rgb(134, 2, 2);
+}
+.wid100{
+width: 100%;
+}

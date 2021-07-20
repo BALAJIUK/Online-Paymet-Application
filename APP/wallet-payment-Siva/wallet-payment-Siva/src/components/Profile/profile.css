@@ -1,0 +1,16 @@
+.avatar{
+    border-radius: 50%;
+    height: 25vh;
+    width: 25vh;
+    font-weight: bold;
+    font-size: 70px;
+}
+.brad{
+    border-radius: 18px;
+}
+.green{
+    background: rgb(2, 37, 11);
+}
+.bold{
+    font-weight: bold;
+}

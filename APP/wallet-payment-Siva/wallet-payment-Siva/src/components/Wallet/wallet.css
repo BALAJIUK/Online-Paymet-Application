@@ -1,0 +1,16 @@
+.butnadd{
+  height: 200px;
+  width: 200px;
+  font-size: x-large;
+  font-weight: bold;
+  border-radius: 50%;
+}
+.butnadd:hover{
+  background: green;
+  color: white;
+}
+.bghr{
+  background-color: black;
+  height: 50vh;
+  border-radius: 18px;
+};

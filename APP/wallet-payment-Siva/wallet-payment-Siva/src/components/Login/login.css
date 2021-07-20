@@ -1,0 +1,21 @@
+.bgimg{
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.8)
+      ),
+      url(LOGO.jpg);
+    background-repeat: no-repeat;
+    background-size: cover;
+    border-radius: 12px;
+    background-position: center;
+}
+.bgimglogin{
+  background-color: #7efaad;
+  background-image: linear-gradient(315deg, #7ee8fa 0%, #80ff72 74%);
+  height: 100vh;
+  font-size: 30px;
+  }
+
+  .ltd {
+    padding: 20px;
+  }

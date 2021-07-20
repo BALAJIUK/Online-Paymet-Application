@@ -1,0 +1,71 @@
+
+.landline{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(landline.jpg);
+  background-position: center;
+  background-size: cover;
+}
+.dth{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(dth.jpg);
+  background-position: center;
+  background-size: cover;
+}
+.broadband{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(broadband.jpg);
+  background-position: center;
+  background-size: cover;
+}
+.cable{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(cable.jpg);
+  background-position: center;
+  background-size: cover;
+}
+.electric{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(electric.jpg);
+  background-position: center;
+  background-size: cover;
+}
+.piped{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(piped.jpg);
+  background-size: cover;
+}
+.gas{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(gas.jpg);
+  background-position: center;
+  background-size: cover;
+}
+.phone{
+  width: 150px;
+  height: 150px;
+  border-radius: 12px;
+  background: url(phone.jpg);
+ background-position: center;
+  background-size: cover;
+}
+.ptag{
+  font-weight: bold;
+  text-align: center;
+}
+.buttons:hover{
+  opacity: 0.7;
+}

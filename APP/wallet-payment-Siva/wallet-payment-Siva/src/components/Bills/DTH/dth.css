@@ -1,0 +1,47 @@
+
+.airtel{
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.8)
+    ),url(airtel.png);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    height: 86vh;
+}
+.sundirect{
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.8)
+    ),url(sun\ direct.jpg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    height: 86vh;
+}
+.tatasky{
+    background: linear-gradient(
+        rgba(255, 255, 255, 0.8),
+        rgba(255, 255, 255, 0.8)
+    ),url(tatasky.jpg);
+    background-repeat: no-repeat;
+    background-size: contain;
+    background-position: center;
+    height: 86vh;
+}
+.custid{
+    background:#001a02;
+    text-align: center;
+    border-radius: 18px;
+    color: white;
+}
+.disable{
+    pointer-events: none;
+}
+.button{
+    width: 100%;
+    font-size: larger;
+    font-weight: bold;
+    color: white;
+    background: #001a02;
+}
